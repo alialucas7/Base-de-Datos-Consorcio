@@ -9794,14 +9794,27 @@ AND
 c.idprovincia = c.idprovincia 
 full outer  join organizacion.provincia as p on 
 p.idprovincia = l.idprovincia 
+order by p.descripcion ASC 
+---------------------------------------------------
+--sin mostrar la localidad si no tiene consorcio asignado
+select organizacion.provincia.descripcion as 'Provincia', organizacion.localidad.descripcion 'Localidad',
+organizacion.consorcio.nombre 'Consorcio' from organizacion.provincia
+left outer join organizacion.consorcio on organizacion.provincia.idprovincia = organizacion.consorcio.idprovincia
+left outer join organizacion.localidad on organizacion.provincia.idprovincia=organizacion.localidad.idprovincia and
+organizacion.localidad.idlocalidad =organizacion.consorcio.idlocalidad; 
 
 -- Ejercicio 30
+--para verificar
 SELECT * from organizacion.consorcio c 
 SELECT * from organizacion.conserje c2 order by apeynom asc;
+
 SELECT c1.apeynom , c.nombre 
 from organizacion.conserje as c1
 full outer join organizacion.consorcio as c
 on c1.idconserje = c.idconserje 
+-- Con este filtro mostrara consorcios sin conserjes 
+-- y tambien conserjes sin consorcio asignado (es la accion inversa)
+--WHERE c1.apeynom IS NULL or c.nombre IS NULL
 order by c1.apeynom asc 
 
 -- Ejercicio 31
