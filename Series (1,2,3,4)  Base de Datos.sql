@@ -9839,15 +9839,62 @@ order by c.idzona DESC;
 -- Ejercicio 2
 -- para verificar
 select p.idprovincia ,p.descripcion ,p.poblacion from organizacion.provincia as p order by p.poblacion desc
-select * from organizacion.consorcio c where c.idprovincia = 
+select * from organizacion.consorcio c where c.idprovincia = 6
 
 
-select c.nombre  --from organizacion.conserje as c
+select *  from organizacion.conserje as co
+ where datediff (YEAR,co.fechnac,GETDATE()) > 50
+ and co.idconserje  not in
 (
-	select * from organizacion.consorcio as c where c.idprovincia in
+	select c.idconserje from organizacion.consorcio as c 
+	where c.idprovincia in
 	(
 		SELECT top 1 p.idprovincia from organizacion.provincia as p
 		order by p.poblacion DESC 
 	)
+	
 )
+
+--order by co.fechnac ASC 
+-----------------------------------------------------------------------
+--Otra forma de hacer
+--La desventaja de esta forma es que la longitud de registro de cada tabla
+--deben ser igualitas al igual que lo tipos de datos deben ocincidir
+select co.idconserje ,co.apeynom from organizacion.conserje as co
+ where datediff (YEAR,co.fechnac,GETDATE()) > 50
+
+EXCEPT 
+(
+	select c.idconserje, c.nombre  from organizacion.consorcio as c 
+	where c.idprovincia in
+	(
+		SELECT top 1 p.idprovincia from organizacion.provincia as p
+		order by p.poblacion DESC 
+	)
+	
+)
+
+
+-- Ejercicio 3
+-- Para verificar
+select * from organizacion.tipogasto as t
+select * from organizacion.provincia as p 
+select * from organizacion.gasto as g where YEAR(g.fechapago) = 2015 and g.idprovincia = 2
+
+select g.idgasto ,t.idtipogasto , t.descripcion, g.fechapago 
+from organizacion.tipogasto as t
+inner join organizacion.gasto as g on t.idtipogasto = g.idtipogasto 
+where YEAR(g.fechapago) = 2015 and  g.idgasto in (
+SELECT g.idgasto from organizacion.gasto as g where g.idprovincia <> 2
+);
+
+
+-- Ejercicio 4
+-- Verificacion
+SELECT COUNT(*) from organizacion.provincia p 
+
+SELECT p.idprovincia, p.descripcion ,l.idprovincia ,l.descripcion from organizacion.provincia p 
+full outer join organizacion.localidad l on p.idprovincia = l.idprovincia 
+
+
 
