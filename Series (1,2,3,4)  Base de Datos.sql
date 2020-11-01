@@ -9911,3 +9911,77 @@ full outer join organizacion.localidad l on p.idprovincia = l.idprovincia
 
 
 
+-- Serie 4
+-- Ejercicio 1
+-- Para comprobar
+SELECT  t.descripcion , sum(g.importe) from organizacion.gasto as g
+full outer join organizacion.tipogasto as t  
+on g.idtipogasto = t.idtipogasto 
+GROUP by t.descripcion 
+
+Insert into consorcioDB.organizacion.tipogasto (idtipogasto, descripcion) values (6,'nuevo')
+
+SELECT t.descripcion from organizacion.tipogasto as t
+left outer join organizacion.gasto as g 
+on t.idtipogasto = g.idtipogasto 
+where g.idtipogasto is NULL 
+
+-- Ejercicio 2
+-- Para verificar 
+SELECT count(*) from organizacion.consorcio ;
+select g.idprovincia ,g.idlocalidad ,g.idconsorcio ,COUNT(*) as 'cantidad de gastos'
+from organizacion.gasto as g
+group by g.idprovincia ,g.idlocalidad, g.idconsorcio 
+order by g.idprovincia asc
+
+
+SELECT COUNT(c.idconsorcio) from organizacion.consorcio as c
+where /*not*/ EXISTS(
+				SELECT * from organizacion.gasto as g
+				where c.idprovincia = g.idprovincia AND 
+					  c.idlocalidad = g.idlocalidad AND 
+					  c.idconsorcio = g.idconsorcio 
+ )
+
+-- Ejercicio 3
+-- Para verificar
+SELECT * from organizacion.administrador; 
+select * from organizacion.consorcio 
+
+select c.idadmin ,a.idadmin , a.apeynom from organizacion.administrador as a
+left outer join organizacion.consorcio as c 
+on a.idadmin = c.idadmin 
+
+
+SELECT * from organizacion.administrador as a
+where not EXISTS (
+		SELECT * from organizacion.consorcio as c
+		where c.idadmin = a.idadmin 
+)
+
+-- Ejercicio 4
+-- Para verificar visualizar las edades
+
+SELECT a.idadmin ,a.apeynom ,
+DATEDIFF(YEAR,a.fechnac,GETDATE()) as edad, -- Devuelve la edad, nada mas que eso
+co.nombre as edificio,
+co.idadmin as 'id(consorcio/admin)'
+from organizacion.administrador as a 
+inner join organizacion.consorcio as co on a.idadmin = co.idadmin 
+
+-- Pone el filtro si la edad del administrador es menor al promedio
+where DATEDIFF(YEAR,a.fechnac,GETDATE()) < 
+ (
+	SELECT AVG(YEAR (GETDATE()) - YEAR (a.fechnac) ) from organizacion.administrador a 
+ )
+ 
+ -- Ejercicio 5
+ 
+
+
+
+
+
+
+
+
