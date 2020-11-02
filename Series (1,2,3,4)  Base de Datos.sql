@@ -9976,8 +9976,38 @@ where DATEDIFF(YEAR,a.fechnac,GETDATE()) <
  )
  
  -- Ejercicio 5
+select * from organizacion.tipogasto t ;
  
+SELECT * from organizacion.administrador as a 
+where  a.idadmin = (
+				SELECT top 1 c.idadmin from organizacion.gasto g 
+				inner join organizacion.consorcio as c on g.idconsorcio = c.idconsorcio 
+				inner join organizacion.tipogasto as t on g.idtipogasto = t.idtipogasto 
+				where 
+				t.descripcion = 'Servicios' AND 
+				YEAR (g.fechapago) = 2015 
+				order by g.importe ASC 
+		
+)
 
+-- Ejercicio 6
+
+SELECT * from organizacion.consorcio c ;
+
+select sum(g.importe) from organizacion.gasto g 
+inner join organizacion.tipogasto as t on g.idtipogasto = t.idtipogasto 
+where YEAR(fechapago) = 2015 and t.descripcion = 'Sueldos' 
+group by g.idprovincia , g.idlocalidad , g.idconsorcio, t.descripcion 
+
+HAVING SUM(g.importe) > 
+(
+SELECT 
+AVG(resulta.sumi) as 'total gastos' from(select SUM(g.importe) sumi 
+from organizacion.gasto g 
+where YEAR(fechapago) = 2015 and g.idtipogasto = 3
+group by g.idprovincia , g.idlocalidad , g.idconsorcio 
+) as resulta
+)
 
 
 
