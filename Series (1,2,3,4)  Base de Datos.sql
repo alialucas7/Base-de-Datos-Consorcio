@@ -9774,7 +9774,7 @@ inner join organizacion.provincia as p on g.idprovincia = p.idprovincia
 GROUP by p.descripcion ,g.importe 
 order by g.importe DESC 
 ----------------------------------------------------------------
-SELECT top 10 with ties c.nombre as 'Nombre' , p.descripcion as 'Provincia ',sum(g.importe) as 'Total gasto' 
+SELECT top 10 with ties c.nombre as 'Nombre' , p.descripcion as 'Provincia ', sum(g.importe) as 'Total gasto' 
 from organizacion.consorcio c
 inner join organizacion.provincia as p on c.idprovincia = p.idprovincia 
 inner join organizacion.gasto as g on c.idconsorcio = g.idconsorcio 
@@ -10010,8 +10010,31 @@ group by g.idprovincia , g.idlocalidad , g.idconsorcio
 )
 
 
+-- Practicas para el parcial
+-- Muestra la cantidad de gastos de cada consorcio
+SELECT p.descripcion, l.descripcion , c.nombre, COUNT(*) as 'cantidad gastos' 
+from organizacion.gasto as g
+inner join organizacion.consorcio as c on g.idconsorcio = c.idconsorcio 
+inner join organizacion.localidad as l on c.idlocalidad = l.idlocalidad and c.idprovincia = l.idprovincia 
+inner join organizacion.provincia as p on l.idprovincia = p.idprovincia 
+GROUP by p.descripcion, l.descripcion , c.nombre
+order by p.descripcion ASC 
 
-
+-- Mustra la cantidad de consorcios por provincia y localidad 
+SELECT p.descripcion, l.descripcion , COUNT(*) as 'cantidad de consorcios' 
+from organizacion.consorcio as c
+inner join organizacion.localidad as l on c.idlocalidad = l.idlocalidad and c.idprovincia = l.idprovincia 
+inner join organizacion.provincia as p on l.idprovincia = p.idprovincia 
+GROUP by p.descripcion, l.descripcion 
+order by p.descripcion ASC 
+ 
+-- Muestra los gastos de servicios(1) y sueldos(3) en el año 2013
+SELECT * from organizacion.gasto as g
+where g.idgasto in (
+						SELECT g.idgasto from organizacion.gasto as g
+						inner join organizacion.tipogasto as t on g.idtipogasto = t.idtipogasto 
+						where YEAR(g.fechapago) = 2013 and (t.descripcion = 'Sueldos' or t.descripcion = 'Servicios')
+				)
 
 
 
