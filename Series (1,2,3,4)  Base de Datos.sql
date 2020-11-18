@@ -1,127 +1,3 @@
-CREATE database consorcioDB;
-use consorcioDB;
-
-CREATE schema organizacion;
-
-DROP table consorcioDB.organizacion.administrador;
-CREATE table consorcioDB.organizacion.administrador(
-	idadmin int identity primary key,
-	apeynom varchar(150) not null,
-	viveahi varchar(1) default 'N',
-	tel varchar(20),
-	sexo varchar(1) not null,
-	fechnac date
-);
-													--Ejercicio 2
---Modificaciones
-alter table consorcioDB.organizacion.administrador alter column fechnac varchar(50);
---Restricciones
-alter table consorcioDB.organizacion.administrador add constraint CK_admi_fecha check (fechnac < 19980101);
-alter table consorcioDB.organizacion.administrador add constraint CK_vive check (viveahi in ('S','N'));
-alter table consorcioDB.organizacion.administrador add constraint CK_sex check (sexo in ('M','F'));
-
-DELETE FROM consorcioDB.organizacion.conserje;
-DROP table consorcioDB.organizacion.conserje;
-CREATE table consorcioDB.organizacion.conserje(
-	idconserje int identity (1,1)primary key,
-	apeynom varchar(50) not null,
-	tel varchar(20),
-	fechnac date,
-	estciv varchar(1) default 'S'
-);
-
---Restricciones
-alter table consorcioDB.organizacion.conserje add constraint CK_conserje_fecha check ((convert (varchar(8),fechnac,112))<19980101);
-alter table consorcioDB.organizacion.conserje add constraint CK_estciv check (estciv in ('C','S','D','V','O'));
-
-
-DROP table consorcioDB.organizacion.localidad;
-CREATE table consorcioDB.organizacion.localidad(
-	idprovincia int, idlocalidad int  not null,
-	--idlocalidad int not null primary key,
-	descripcion varchar(50) not null
-	primary key(idprovincia,idlocalidad)
-);
-
-SELECT * from consorcioDB.organizacion.provincia p ;
-CREATE table consorcioDB.organizacion.provincia(
-	idprovincia int primary key not null,
-	descripcion varchar(50) not null,
-	km2 int,
-	cantdptos int ,
-	nomcabe varchar(50)
-);
---Restricciones
---alter table consorcioDB.organizacion.provincia drop column problacion;
-alter table consorcioDB.organizacion.provincia add poblacion int;
-
-
-CREATE table consorcioDB.organizacion.zona(
-	idzona int identity  primary key,
-	descripcion varchar(50)
-);
-
-DROP table consorcioDB.organizacion.consorcio;
-CREATE table consorcioDB.organizacion.consorcio(
-	idprovincia int  not null,
-	idlocalidad int not null,
-	idconsorcio int not null,
-	nombre varchar(50) not null,
-	direccion varchar(250),
-	idzona int not null,
-	idconserje int  null,
-	idadmin int  null
-	primary key(idprovincia,idlocalidad,idconsorcio)
-);
-DROP table consorcioDB.organizacion.gasto;
-CREATE table consorcioDB.organizacion.gasto(
-	idprovincia int not null,
-	idlocalidad int not null,
-	idconsorcio int not null,
-	idgasto int identity (1,1),
-	periodo int not null,
-	fechapago date not null,
-	idtipogasto int not null,
-	importe float not null
-	primary key (idgasto,idprovincia,idlocalidad,idconsorcio)
-);
---Restricciones
-alter table consorcioDB.organizacion.gasto add constraint CK_fechapago check
-(convert (varchar(8),fechapago,112) < convert (varchar(8),getdate(),112));
---select (MONTH (GETDATE())); 
-alter table consorcioDB.organizacion.gasto add constraint CK_periodo check
-(periodo <= (month (getdate())));
-
-alter table consorcioDB.organizacion.gasto  add constraint FK_consorcio_gasto foreign key (idprovincia,idlocalidad,idconsorcio) 
-references consorcioDB.organizacion.consorcio(idprovincia,idlocalidad,idconsorcio) 
-
-alter table consorcioDB.organizacion.gasto add constraint FK_tipogasto
-foreign key (idtipogasto) references consorcioDB.organizacion.tipogasto
-(idtipogasto)
-create table consorcioDB.organizacion.tipogasto(
-	idtipogasto int not null primary key,
-	descripcion varchar(50) not null
-);
-
---Claves Foraneas para consorcio
-alter table consorcioDB.organizacion.consorcio 
-		--ADD constraint FK_administrador_consorcio FOREIGN KEY(idadmin)  references consorcioDB.organizacion.administrador(idadmin);
-		--add constraint FK_conserje_consorcio foreign key(idconserje) references consorcioDB.organizacion.conserje(idconserje);
-		--add constraint FK_localidad_consorcio FOREIGN KEY(idprovincia,idlocalidad)  references consorcioDB.organizacion.localidad(idprovincia,idlocalidad);
-		add constraint FK_zona_consorcio foreign key (idzona) references consorcioDB.organizacion.zona(idzona);
-	ALTER table consorcioDB.organizacion.consorcio drop constraint FK_administrador_consorcio;
-	ALTER table consorcioDB.organizacion.consorcio drop constraint FK_conserje_consorcio;
-	ALTER table consorcioDB.organizacion.consorcio drop constraint FK_localidad_consorcio;
-	ALTER table consorcioDB.organizacion.consorcio drop constraint FK_zona_consorcio;
-
---Claves Foraneas para Localidad
-alter table consorcioDB.organizacion.localidad 
-	add constraint FK_provinvia_localidad foreign key (idprovincia) references consorcioDB.organizacion.provincia(idprovincia);
-
---Claves Foraneas para la tabla gasto
-ALTER table consorcioDB.organizacion.gasto 
-	--add constraint FK_tipoGasto_gasto foreign key (idtipogasto) references consorcioDB.organizacion.tipogasto (idtipogasto);
-	add constraint FK_consorcio_gasto foreign key (idprovincia,idlocalidad,idconsorcio) references consorcioDB.organizacion.consorcio (idprovincia,idlocalidad,idconsorcio);
 
 --								Ingreso de Datos
 Insert into consorcioDB.organizacion.provincia (idprovincia, descripcion,km2,cantdptos,poblacion,nomcabe) values (1, 'Capital Federal',203,1,2891082,'Capital Federal')
@@ -9943,18 +9819,22 @@ where /*not*/ EXISTS(
 					  c.idconsorcio = g.idconsorcio 
  )
 
+SELECT SUM(g.importe) from organizacion.gasto g 
+
+
 -- Ejercicio 3
 -- Para verificar
 SELECT * from organizacion.administrador; 
 select * from organizacion.consorcio 
-
+-- Alternativa 1
 select c.idadmin ,a.idadmin , a.apeynom from organizacion.administrador as a
 left outer join organizacion.consorcio as c 
 on a.idadmin = c.idadmin 
+--where c.idadmin is NULL 
 
-
+-- Alternativa 2
 SELECT * from organizacion.administrador as a
-where not EXISTS (
+where NOT EXISTS (
 		SELECT * from organizacion.consorcio as c
 		where c.idadmin = a.idadmin 
 )
@@ -10037,4 +9917,157 @@ where g.idgasto in (
 				)
 
 
+SELECT c1.apeynom , c1.idconserje ,c.idconserje from organizacion.consorcio c 
+right join organizacion.conserje as c1 on c.idconserje = c1.idconserje 
+where c.idconserje is NULL 
+				
+				
+				
+				
+				
+				
+-- Recuperatorio Parcial 2018
+
+﻿/* ALUMNO: A partir de la tabla “gasto” del modelo de datos “consorcio” se necesita generar una factura por mes y por consorcio, se debe tener 
+           en cuenta cada uno de los gastos registrados y el mes en que se realizó. El objetivo de estas facturas es remitirlas a cada consorcio 
+		   para poder recuperar los gastos realizados por la administración.
+           Para ello se solicita:*/
+
+/* 1. Adaptar el modelo de datos “consorcio” (siguiendo las pautas del diseño relacional y redefiniendo la clave principal de la tabla gasto si 
+     lo considera necesario) para que permita registrar las facturas respectivas teniendo en cuenta las siguientes restricciones:
+		 El número de la factura debe ser único.
+		 Se debe conocer la fecha de emisión de la factura y la fecha de vencimiento. La fecha de vencimiento se deberá calcular automáticamente
+		  y tendrá que ser 30 días posteriores a la fecha de emisión. También se necesita registrar en la factura el mes y el año del período de
+          facturación.
+		 Los ítems de las facturas se deberán obtener de la tabla ‘gasto’. No se podrá facturar ningún ítem que no esté registrado previamente 
+		  en dicha tabla, y un ítem no podrá aparecer en más de una factura. */
+
+
+
+CREATE TABLE organizacion.factura(
+	idFactura INT CONSTRAINT PK_idfactura PRIMARY KEY,
+	nroFactura INT UNIQUE,
+	fechaEmision DATE DEFAULT GETDATE(),
+	fechaVencimiento DATE DEFAULT DATEADD(dd, 30, getdate()),
+	mes INT NOT NULL,
+	agno INT NOT NULL
+
+);
+
+SELECT * FROM organizacion.gasto g ;
+
+
+CREATE TABLE organizacion.detallefactura
+
+
+
+(
+	idFactura INT NOT NULL,
+    idDetalleFactura INT NOT NULL,
+    idgasto INT NOT NULL ,
+    primary key (idFactura,idDetalleFactura),
+   -- foreign key (idgasto) references organizacion.gasto(idgasto)
+    
+);
+
+
+
+ALTER TABLE organizacion.detalleFactura
+		ADD CONSTRAINT PK_detalleFactura PRIMARY KEY (idFactura, idDetalleFactura);
+
+
+ALTER TABLE organizacion.detalleFactura
+	ADD CONSTRAINT FK_detalleFactura_Factura FOREIGN KEY (idFactura) REFERENCES organizacion.factura(idFactura);
+
+
+ALTER TABLE consorcioDB.organizacion.detalleFactura
+	ADD CONSTRAINT FK_detalleFactura_Gasto FOREIGN KEY (idgasto) REFERENCES organizacion.gasto(idgasto)
+
+SELECT * FROM factura;
+
+
+SELECT * FROM organizacion.detallefactura;
+
+
+
+/* 2. Generar un lote de datos representativo (tomado de la tabla ‘gasto’) que permita corroborar el modelo de datos, y satisfacer las consultas 
+      que se solicitan en los puntos siguientes.*/
+
+INSERT INTO factura (idFactura, nroFactura, mes, agno) VALUES (1, 1, 1, 2013);
+INSERT INTO factura (idfactura, nroFactura, mes, agno) VALUES (2, 2, 7, 2013);
+INSERT INTO factura (idfactura, nroFactura, mes, agno) VALUES (3, 3, 5, 2013);
+INSERT INTO factura (idfactura, nroFactura, mes, agno) VALUES (4, 4, 8, 2015);
+INSERT INTO factura (idfactura, nroFactura, mes, agno) VALUES (5, 5, 3, 2014);
+INSERT INTO factura (idfactura, nroFactura, mes, agno) VALUES (6, 6, 6, 2014);
+
+
+SELECT * FROM factura;
+GO
+
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (1,1,6);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (2,1,3);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (2,2,4);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (2,3,7);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (3,1,17);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (3,2,15);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (4,1,54);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (4,2,41);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (5,1,35);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (6,1,33);
+INSERT INTO organizacion.detalleFactura (idFactura, idDetalleFactura, idgasto) VALUES (6,2,36);
+GO
+
+SELECT * FROM detalleFactura;
+GO
+
+
+/* 3. Mostrar los siguientes datos por cada facturación: Nro. de factura, fecha de emisión, fecha de vencimiento, periodo de facturación 
+     (mes y año), nombre del consorcio y monto total de la factura (este dato debe ser calculado en base a los gastos de cada periodo). */
+
+SELECT factura.nroFactura, factura.fechaEmision, factura.fechaVencimiento, consorcio.nombre, SUM(gasto.importe) as ' MONTO FACTURACIÓN'
+FROM factura 
+INNER JOIN detalleFactura  ON factura.idFactura = detallefactura.idFactura
+INNER JOIN gasto  ON detallefactura.idGasto = gasto.idGasto
+INNER JOIN consorcio ON consorcio.idprovincia = gasto.idprovincia AND consorcio.idlocalidad = gasto.idlocalidad
+AND consorcio.idconsorcio = gasto.idconsorcio
+GROUP BY factura.nroFactura, factura.fechaEmision, factura.fechaVencimiento, consorcio.nombre;
+GO
+
+/*4. Mostrar un listado de los gastos, junto con el nombre de consorcio al que pertenece, solo de aquellos
+gastos que no hayan sido incluido en ninguna factura. */
+
+SELECT consorcio.nombre, gasto.*, detallefactura.idFactura
+FROM consorcio 
+INNER JOIN gasto ON consorcio.idprovincia = gasto.idprovincia AND consorcio.idlocalidad = gasto.idlocalidad
+AND consorcio.idconsorcio = gasto.idconsorcio
+LEFT JOIN detalleFactura ON gasto.idGasto = detallefactura.idGasto
+WHERE detallefactura.idFactura IS NULL;
+GO
+
+/* 5. Mostrar la factura que tuvo el ítem de mayor gasto.*/
+
+SELECT factura.*
+FROM gasto 
+INNER JOIN detalleFactura ON gasto.idGasto = detallefactura.idGasto
+INNER JOIN factura  ON detallefactura.idFactura = factura.idFactura
+WHERE gasto.importe = (SELECT max(gasto.importe)
+						from gasto 
+						INNER JOIN detalleFactura ON gasto.idGasto = detallefactura.idGasto
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+				
+				
+				
 
